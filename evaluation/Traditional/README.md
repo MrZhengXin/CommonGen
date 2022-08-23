@@ -2,7 +2,7 @@
 
 ```
 
-conda create -n coco_score python=2.7
+conda create -n coco_score # python=2.7
 conda activate coco_score
 pip install numpy
 pip install -U spacy

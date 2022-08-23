@@ -1,5 +1,5 @@
 from bleu.bleu import Bleu
-from meteor.meteor import Meteor
+# from meteor.meteor import Meteor
 from rouge.rouge import Rouge
 from cider.cider import Cider
 from spice.spice import Spice
@@ -15,7 +15,7 @@ parser.add_argument('--res_file', default="", type=str)
 args = parser.parse_args()
 
 nlp = spacy.load("en_core_web_sm")
-nlp.pipeline = [('tagger', nlp.tagger)]
+# nlp.pipeline = [('tagger', nlp.tagger)]
 
 
 def tokenize(dict):
@@ -23,7 +23,7 @@ def tokenize(dict):
         new_sentence_list = []
         for sentence in dict[key]:
             a = ''
-            for token in nlp(unicode(sentence)):
+            for token in nlp(sentence):
                 a += token.text
                 a += ' '
             new_sentence_list.append(a.rstrip())
@@ -37,7 +37,7 @@ def evaluator(gts, res):
     # =================================================
     # Set up scorers
     # =================================================
-    print 'tokenization...'
+    print('tokenization...')
     # Todo: use Spacy for tokenization
     gts = tokenize(gts)
     res = tokenize(res)
@@ -45,10 +45,10 @@ def evaluator(gts, res):
     # =================================================
     # Set up scorers
     # =================================================
-    print 'setting up scorers...'
+    print('setting up scorers...')
     scorers = [
         (Bleu(4), ["Bleu_1", "Bleu_2", "Bleu_3", "Bleu_4"]),
-        (Meteor(), "METEOR"),
+        # (Meteor(), "METEOR"),
         # (Rouge(), "ROUGE_L"),
         (Cider(), "CIDEr"),
         (Spice(), "SPICE")
@@ -58,15 +58,15 @@ def evaluator(gts, res):
     # Compute scores
     # =================================================
     for scorer, method in scorers:
-        print 'computing %s score...' % (scorer.method())
+        print('computing %s score...' % (scorer.method()))
         score, scores = scorer.compute_score(gts, res)
         if type(method) == list:
             for sc, scs, m in zip(score, scores, method):
                 eval[m] = sc
-                print "%s: %0.3f" % (m, sc)
+                print("%s: %0.3f" % (m, sc))
         else:
             eval[method] = score
-            print "%s: %0.3f" % (method, score)
+            print("%s: %0.3f" % (method, score))
 
 if __name__=='__main__':
 
@@ -87,15 +87,16 @@ if __name__=='__main__':
         res_lines = f.readlines()
         # res_lines = [line.decode('utf-8') for line in f.readlines()]
 
-    for key_line, gts_line, res_line in zip(key_lines, gts_lines, res_lines):
+    for key_line, gts_line in zip(key_lines, gts_lines):
         key = '#'.join(key_line.rstrip('\n').split(' '))
         if key not in gts:
             gts[key] = []
             gts[key].append(gts_line.rstrip('\n'))
-            res[key] = []
-            res[key].append(res_line.rstrip('\n'))
         else:
             gts[key].append(gts_line.rstrip('\n'))
+    
+    for key, res_line in zip(gts.keys(), res_lines): # one system generated predicition with multiple references
+        res[key] = [res_line]
 
     evaluator(gts, res)
 

@@ -50,22 +50,23 @@ class Spice:
         temp_dir=os.path.join(cwd, TEMP_DIR)
         if not os.path.exists(temp_dir):
           os.makedirs(temp_dir)
-        in_file = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
+        in_file = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir, mode = "w")
         json.dump(input_data, in_file, indent=2)
         in_file.close()
 
         # Start job
-        out_file = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir)
+        out_file = tempfile.NamedTemporaryFile(delete=False, dir=temp_dir, mode = "w")
         out_file.close()
         cache_dir=os.path.join(cwd, CACHE_DIR)
         if not os.path.exists(cache_dir):
           os.makedirs(cache_dir)
-        spice_cmd = ['java', '-jar', '-Xmx8G', SPICE_JAR, in_file.name,
+        spice_cmd = ['/opt/tiger/yarn_deploy/jdk/jre/bin/java', '-jar', '-Xmx8G', SPICE_JAR, in_file.name,
           '-cache', cache_dir,
           '-out', out_file.name,
           '-subset',
           '-silent'
         ]
+        print(os.path.dirname(os.path.abspath(__file__)))
         subprocess.check_call(spice_cmd, 
             cwd=os.path.dirname(os.path.abspath(__file__)))
 
@@ -85,7 +86,7 @@ class Spice:
         for image_id in imgIds:
           # Convert none to NaN before saving scores over subcategories
           score_set = {}
-          for category,score_tuple in imgId_to_scores[image_id].iteritems():
+          for category,score_tuple in imgId_to_scores[image_id].items():
             score_set[category] = {k: self.float_convert(v) for k, v in score_tuple.items()}
           scores.append(score_set)
         return average_score, scores
